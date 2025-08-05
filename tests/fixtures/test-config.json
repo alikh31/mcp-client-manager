@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "testStdioServer": {
+      "transport": "stdio",
+      "command": "node",
+      "args": ["test-server.js"],
+      "version": "1.0.0"
+    },
+    "testSseServer": {
+      "transport": "sse",
+      "url": "https://example.com/sse"
+    },
+    "testHttpServer": {
+      "transport": "http-stream",
+      "url": "https://api.example.com/stream"
+    }
+  }
+}

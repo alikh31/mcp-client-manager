@@ -1,6 +1,3 @@
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
-
 # Run linter and tests before commit
 echo "🔍 Running linter on staged files..."
 npx lint-staged

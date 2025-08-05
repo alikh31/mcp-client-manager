@@ -15,7 +15,24 @@ const { SSEClientTransport } = require('@modelcontextprotocol/sdk/client/sse.js'
 const { StreamableHTTPClientTransport } = require('@modelcontextprotocol/sdk/client/streamableHttp.js')
 
 describe('ClientsManager', () => {
-  const testConfigPath = path.join(__dirname, '../fixtures/test-config.json')
+  const testConfig = {
+    mcpServers: {
+      testStdioServer: {
+        transport: 'stdio',
+        command: 'node',
+        args: ['test-server.js'],
+        version: '1.0.0',
+      },
+      testSseServer: {
+        transport: 'sse',
+        url: 'https://example.com/sse',
+      },
+      testHttpServer: {
+        transport: 'http-stream',
+        url: 'https://api.example.com/stream',
+      },
+    },
+  }
   let mockClient
 
   beforeEach(() => {
@@ -36,10 +53,8 @@ describe('ClientsManager', () => {
   })
 
   describe('constructor', () => {
-    it('should initialize with valid config file', () => {
-      const manager = new ClientsManager({
-        MCP_SERVERS_CONFIG_FILE: testConfigPath,
-      })
+    it('should initialize with valid config object', () => {
+      const manager = new ClientsManager(testConfig)
 
       expect(manager.config).toBeDefined()
       expect(manager.clients).toBeDefined()
@@ -47,49 +62,19 @@ describe('ClientsManager', () => {
       expect(Object.keys(manager.clients)).toHaveLength(3)
     })
 
-    it('should throw error for non-existent config file', () => {
+    it('should throw error for invalid config object', () => {
       expect(() => {
-        new ClientsManager({
-          MCP_SERVERS_CONFIG_FILE: '/non/existent/path.json',
-        })
-      }).toThrow('Config file not found')
+        new ClientsManager({ invalid: 'config' })
+      }).toThrow()
     })
   })
 
-  describe('readConfig', () => {
-    it('should read and parse valid config file', () => {
-      const config = ClientsManager.readConfig(testConfigPath)
-
-      expect(config).toBeDefined()
-      expect(config.mcpServers).toBeDefined()
-      expect(Object.keys(config.mcpServers)).toHaveLength(3)
-    })
-
-    it('should throw error for non-existent file', () => {
-      expect(() => {
-        ClientsManager.readConfig('/non/existent/path.json')
-      }).toThrow('Config file not found')
-    })
-
-    it('should throw error for invalid JSON', () => {
-      const invalidJsonPath = path.join(__dirname, '../fixtures/invalid.json')
-      fs.writeFileSync(invalidJsonPath, '{ invalid json }')
-
-      expect(() => {
-        ClientsManager.readConfig(invalidJsonPath)
-      }).toThrow('Invalid JSON in config file')
-
-      fs.unlinkSync(invalidJsonPath)
-    })
-  })
 
   describe('getTransport', () => {
     let manager
 
     beforeEach(() => {
-      manager = new ClientsManager({
-        MCP_SERVERS_CONFIG_FILE: testConfigPath,
-      })
+      manager = new ClientsManager(testConfig)
     })
 
     it('should create StdioClientTransport for stdio transport', () => {
@@ -145,9 +130,7 @@ describe('ClientsManager', () => {
     let manager
 
     beforeEach(() => {
-      manager = new ClientsManager({
-        MCP_SERVERS_CONFIG_FILE: testConfigPath,
-      })
+      manager = new ClientsManager(testConfig)
     })
 
     it('should throw error for server without name', () => {
@@ -192,9 +175,7 @@ describe('ClientsManager', () => {
     let manager
 
     beforeEach(() => {
-      manager = new ClientsManager({
-        MCP_SERVERS_CONFIG_FILE: testConfigPath,
-      })
+      manager = new ClientsManager(testConfig)
     })
 
     it('should connect all clients successfully', async () => {
@@ -222,9 +203,7 @@ describe('ClientsManager', () => {
     let consoleLogSpy
 
     beforeEach(() => {
-      manager = new ClientsManager({
-        MCP_SERVERS_CONFIG_FILE: testConfigPath,
-      })
+      manager = new ClientsManager(testConfig)
       consoleLogSpy = jest.spyOn(console, 'log').mockImplementation()
     })
 

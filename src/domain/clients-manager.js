@@ -8,13 +8,11 @@ const {
   InitializedNotificationSchema,
   RootsListChangedNotificationSchema,
 } = require('@modelcontextprotocol/sdk/types.js')
-const fs = require('fs')
 const MCPConfigInterface = require('../schemas/config')
 
 module.exports = class ClientsManager {
   constructor(config) {
-    this.config = ClientsManager
-      .readConfig(config.MCP_SERVERS_CONFIG_FILE)
+    this.config = MCPConfigInterface.parse(config)
 
     this.clients = []
     this.transports = []
@@ -23,21 +21,6 @@ module.exports = class ClientsManager {
       .forEach(name => this.runMCPClient({ ...this.config.mcpServers[name], name }))
   }
 
-  static readConfig(path) {
-    try {
-      if (!fs.existsSync(path)) {
-        throw new Error(`Config file not found: ${path}`)
-      }
-      const content = fs.readFileSync(path, 'utf8')
-      const parsedContent = JSON.parse(content)
-      return MCPConfigInterface.parse(parsedContent)
-    } catch (error) {
-      if (error instanceof SyntaxError) {
-        throw new Error(`Invalid JSON in config file: ${error.message}`)
-      }
-      throw error
-    }
-  }
 
   getTransport(server) {
     switch (server.transport) {

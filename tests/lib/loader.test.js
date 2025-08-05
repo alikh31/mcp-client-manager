@@ -1,4 +1,5 @@
 const path = require('path')
+const fs = require('fs')
 
 jest.mock('@modelcontextprotocol/sdk')
 jest.mock('@modelcontextprotocol/sdk/client/index.js')
@@ -38,13 +39,40 @@ describe('MCPClientLoader', () => {
     })
   })
 
+  describe('readConfig', () => {
+    it('should read and parse valid config file', () => {
+      const config = MCPClientLoader.readConfig(testConfigPath)
+
+      expect(config).toBeDefined()
+      expect(config.mcpServers).toBeDefined()
+      expect(Object.keys(config.mcpServers)).toHaveLength(3)
+    })
+
+    it('should throw error for non-existent file', () => {
+      expect(() => {
+        MCPClientLoader.readConfig('/non/existent/path.json')
+      }).toThrow('Config file not found')
+    })
+
+    it('should throw error for invalid JSON', () => {
+      const invalidJsonPath = path.join(__dirname, '../fixtures/invalid.json')
+      fs.writeFileSync(invalidJsonPath, '{ invalid json }')
+
+      expect(() => {
+        MCPClientLoader.readConfig(invalidJsonPath)
+      }).toThrow('Invalid JSON in config file')
+
+      fs.unlinkSync(invalidJsonPath)
+    })
+  })
+
   describe('loadClients', () => {
     it('should load clients successfully', async () => {
       const result = await loader.loadClients(testConfigPath)
 
-      expect(ClientsManager).toHaveBeenCalledWith({
-        MCP_SERVERS_CONFIG_FILE: testConfigPath,
-      })
+      expect(ClientsManager).toHaveBeenCalledWith(expect.objectContaining({
+        mcpServers: expect.any(Object)
+      }))
       expect(mockClientManager.connect).toHaveBeenCalled()
       expect(result).toBe(mockClientManager)
       expect(loader.clientManager).toBe(mockClientManager)

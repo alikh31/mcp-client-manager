@@ -25,6 +25,17 @@ describe('MCPClientLoader', () => {
         testServer2: { name: 'testServer2' },
       },
       connect: jest.fn().mockResolvedValue(undefined),
+      disconnect: jest.fn().mockResolvedValue(undefined),
+      setNotificationHandler: jest.fn((eventType, handler) => {
+        mockClientManager.userHandlers.set(eventType, handler)
+      }),
+      setErrorHandler: jest.fn((handler) => {
+        mockClientManager.userHandlers.set('error', handler)
+      }),
+      setTransportCloseHandler: jest.fn((handler) => {
+        mockClientManager.userHandlers.set('transportClose', handler)
+      }),
+      userHandlers: new Map(),
     }
     ClientsManager.mockImplementation(() => mockClientManager)
   })
@@ -70,9 +81,12 @@ describe('MCPClientLoader', () => {
     it('should load clients successfully', async () => {
       const result = await loader.loadClients(testConfigPath)
 
-      expect(ClientsManager).toHaveBeenCalledWith(expect.objectContaining({
-        mcpServers: expect.any(Object),
-      }))
+      expect(ClientsManager).toHaveBeenCalledWith(
+        expect.objectContaining({
+          mcpServers: expect.any(Object),
+        }),
+        expect.any(Object),
+      )
       expect(mockClientManager.connect).toHaveBeenCalled()
       expect(result).toBe(mockClientManager)
       expect(loader.clientManager).toBe(mockClientManager)
@@ -141,35 +155,11 @@ describe('MCPClientLoader', () => {
   })
 
   describe('disconnect', () => {
-    it('should disconnect all clients with close method', async () => {
-      const mockClient1 = { close: jest.fn().mockResolvedValue(undefined) }
-      const mockClient2 = { close: jest.fn().mockResolvedValue(undefined) }
-
-      mockClientManager.clients = {
-        testServer1: mockClient1,
-        testServer2: mockClient2,
-      }
-
+    it('should call clientManager disconnect', async () => {
       await loader.loadClients(testConfigPath)
       await loader.disconnect()
 
-      expect(mockClient1.close).toHaveBeenCalled()
-      expect(mockClient2.close).toHaveBeenCalled()
-    })
-
-    it('should handle clients without close method', async () => {
-      const mockClient1 = { name: 'testServer1' }
-      const mockClient2 = { close: jest.fn().mockResolvedValue(undefined) }
-
-      mockClientManager.clients = {
-        testServer1: mockClient1,
-        testServer2: mockClient2,
-      }
-
-      await loader.loadClients(testConfigPath)
-      await loader.disconnect()
-
-      expect(mockClient2.close).toHaveBeenCalled()
+      expect(mockClientManager.disconnect).toHaveBeenCalled()
     })
 
     it('should handle disconnect when no clients loaded', async () => {
@@ -177,15 +167,48 @@ describe('MCPClientLoader', () => {
     })
 
     it('should handle disconnect errors gracefully', async () => {
-      const mockClient = {
-        close: jest.fn().mockRejectedValue(new Error('Disconnect failed')),
-      }
-
-      mockClientManager.clients = { testServer: mockClient }
+      mockClientManager.disconnect.mockRejectedValueOnce(new Error('Disconnect failed'))
 
       await loader.loadClients(testConfigPath)
 
       await expect(loader.disconnect()).rejects.toThrow('Disconnect failed')
+    })
+  })
+
+  describe('handler registration', () => {
+    let loader
+    let mockHandler
+
+    beforeEach(async () => {
+      loader = new MCPClientLoader()
+      mockHandler = jest.fn()
+      await loader.loadClients(testConfigPath)
+    })
+
+    it('should register notification handlers through loader', () => {
+      loader.setNotificationHandler('progress', mockHandler)
+
+      expect(loader.clientManager.userHandlers.get('progress')).toBe(mockHandler)
+    })
+
+    it('should register error handlers through loader', () => {
+      loader.setErrorHandler(mockHandler)
+
+      expect(loader.clientManager.userHandlers.get('error')).toBe(mockHandler)
+    })
+
+    it('should register transport close handlers through loader', () => {
+      loader.setTransportCloseHandler(mockHandler)
+
+      expect(loader.clientManager.userHandlers.get('transportClose')).toBe(mockHandler)
+    })
+
+    it('should throw error when setting handlers before loading clients', () => {
+      const newLoader = new MCPClientLoader()
+
+      expect(() => newLoader.setNotificationHandler('progress', mockHandler)).toThrow('Clients not loaded. Call loadClients() first.')
+      expect(() => newLoader.setErrorHandler(mockHandler)).toThrow('Clients not loaded. Call loadClients() first.')
+      expect(() => newLoader.setTransportCloseHandler(mockHandler)).toThrow('Clients not loaded. Call loadClients() first.')
     })
   })
 })

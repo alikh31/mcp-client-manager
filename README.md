@@ -24,6 +24,10 @@ const { MCPClientLoader, ClientsManager, MCPConfigSchema } = require('mcp-client
 const loader = new MCPClientLoader();
 await loader.loadClients('./config.json');
 
+// Or with options (disable logging)
+const quietLoader = new MCPClientLoader({ enableLogging: false });
+await quietLoader.loadClients('./config.json');
+
 // Get all clients
 const clients = loader.getClients();
 
@@ -33,6 +37,60 @@ const client = loader.getClient('myServer');
 // Disconnect all clients
 await loader.disconnect();
 ```
+
+### Event Handling
+
+Register custom handlers for MCP events:
+
+```javascript
+const { MCPClientLoader } = require('mcp-client-manager');
+
+const loader = new MCPClientLoader();
+await loader.loadClients('./config.json');
+
+// Handle progress updates
+loader.setNotificationHandler('progress', (clientName, notification) => {
+  const { progress, total } = notification.params;
+  console.log(`${clientName}: ${progress}/${total} completed`);
+});
+
+// Handle resource updates
+loader.setNotificationHandler('resourceUpdated', (clientName, notification) => {
+  console.log(`${clientName}: Resource ${notification.params.uri} was updated`);
+});
+
+// Handle tool list changes
+loader.setNotificationHandler('toolListChanged', (clientName, notification) => {
+  console.log(`${clientName}: Available tools have changed`);
+});
+
+// Handle errors
+loader.setErrorHandler((clientName, error) => {
+  console.error(`${clientName} error:`, error.message);
+});
+
+// Handle transport disconnections
+loader.setTransportCloseHandler((clientName) => {
+  console.log(`${clientName}: Connection closed`);
+});
+```
+
+#### Available Event Types
+
+**Notification Events:**
+- `cancelled` - Request cancellation notifications
+- `progress` - Progress updates for long-running operations
+- `initialized` - Server initialization completion
+- `rootsListChanged` - Root directory changes
+- `resourceListChanged` - Resource list changes
+- `resourceUpdated` - Specific resource updates
+- `toolListChanged` - Tool list changes
+- `loggingMessage` - Server logging messages
+- `promptListChanged` - Prompt list changes
+
+**Error Events:**
+- `error` - Client and transport errors
+- `transportClose` - Transport connection closed
 
 ### Direct ClientsManager Usage
 
@@ -44,6 +102,10 @@ const config = MCPClientLoader.readConfig('./config.json');
 const manager = new ClientsManager(config);
 
 await manager.connect();
+
+// Or with options
+const quietManager = new ClientsManager(config, { enableLogging: false });
+await quietManager.connect();
 
 // Or pass config object directly
 const configObject = {
@@ -103,19 +165,47 @@ Create a configuration file with your MCP servers:
 
 ### MCPClientLoader
 
+#### Constructor
+
+- `new MCPClientLoader(options)`: Create a new loader
+  - `options.enableLogging`: Enable/disable console logging (default: true)
+
 #### Methods
 
 - `loadClients(configPath)`: Load and connect to MCP clients from config file
 - `getClients()`: Get all loaded clients
 - `getClient(name)`: Get a specific client by name
 - `disconnect()`: Disconnect all clients
+- `setNotificationHandler(eventType, handler)`: Register handler for notification events
+- `setErrorHandler(handler)`: Register handler for error events
+- `setTransportCloseHandler(handler)`: Register handler for transport close events
+
+#### Handler Function Signatures
+
+```javascript
+// Notification handler: (clientName, notification) => void
+loader.setNotificationHandler('progress', (clientName, notification) => {
+  // Handle progress notification
+});
+
+// Error handler: (clientName, error) => void
+loader.setErrorHandler((clientName, error) => {
+  // Handle error
+});
+
+// Transport close handler: (clientName) => void
+loader.setTransportCloseHandler((clientName) => {
+  // Handle transport close
+});
+```
 
 ### ClientsManager
 
 #### Constructor
 
-- `new ClientsManager(config)`: Create a new clients manager
+- `new ClientsManager(config, options)`: Create a new clients manager
   - `config`: Configuration object with `mcpServers` property
+  - `options.enableLogging`: Enable/disable console logging (default: true)
 
 ### MCPClientLoader
 
@@ -126,8 +216,12 @@ Create a configuration file with your MCP servers:
 #### Methods
 
 - `connect()`: Connect to all configured servers
+- `disconnect()`: Disconnect all clients and transports
 - `getTransport(server)`: Get transport for server configuration
 - `runMCPClient(server)`: Initialize a single MCP client
+- `setNotificationHandler(eventType, handler)`: Register handler for notification events
+- `setErrorHandler(handler)`: Register handler for error events
+- `setTransportCloseHandler(handler)`: Register handler for transport close events
 
 ### MCPConfigSchema
 

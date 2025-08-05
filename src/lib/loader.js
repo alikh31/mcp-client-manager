@@ -3,8 +3,9 @@ const MCPConfigInterface = require('../schemas/config')
 const fs = require('fs')
 
 class MCPClientLoader {
-  constructor() {
+  constructor(options = {}) {
     this.clientManager = null
+    this.options = options
   }
 
   static readConfig(path) {
@@ -26,7 +27,7 @@ class MCPClientLoader {
   async loadClients(configPath) {
     try {
       const config = MCPClientLoader.readConfig(configPath)
-      this.clientManager = new ClientsManager(config)
+      this.clientManager = new ClientsManager(config, this.options)
 
       await this.clientManager.connect()
       return this.clientManager
@@ -51,13 +52,29 @@ class MCPClientLoader {
 
   async disconnect() {
     if (this.clientManager) {
-      const disconnectPromises = Object.values(this.clientManager.clients).map(client => {
-        if (client && typeof client.close === 'function') {
-          return client.close()
-        }
-      })
-      await Promise.all(disconnectPromises)
+      await this.clientManager.disconnect()
     }
+  }
+
+  setNotificationHandler(eventType, handler) {
+    if (!this.clientManager) {
+      throw new Error('Clients not loaded. Call loadClients() first.')
+    }
+    this.clientManager.setNotificationHandler(eventType, handler)
+  }
+
+  setErrorHandler(handler) {
+    if (!this.clientManager) {
+      throw new Error('Clients not loaded. Call loadClients() first.')
+    }
+    this.clientManager.setErrorHandler(handler)
+  }
+
+  setTransportCloseHandler(handler) {
+    if (!this.clientManager) {
+      throw new Error('Clients not loaded. Call loadClients() first.')
+    }
+    this.clientManager.setTransportCloseHandler(handler)
   }
 }
 

@@ -1,7 +1,7 @@
 # MCP Client Manager
 
 [![CI](https://github.com/alikh31/mcp-client-manager/workflows/CI/badge.svg)](https://github.com/alikh31/mcp-client-manager/actions)
-[![npm version](https://badge.fury.io/js/mcp-client-manager.svg)](https://badge.fury.io/js/mcp-client-manager)
+[![npm version](https://badge.fury.io/js/mcp-client-manager.png?icon=si%3Anpm)](https://badge.fury.io/js/mcp-client-manager)
 
 > **⚠️ Development Status**: This package is currently under active development. APIs may change and features may be incomplete. Use in production environments at your own risk.
 

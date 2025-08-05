@@ -3,6 +3,8 @@
 [![CI](https://github.com/alikh31/mcp-client-manager/workflows/CI/badge.svg)](https://github.com/alikh31/mcp-client-manager/actions)
 [![npm version](https://badge.fury.io/js/mcp-client-manager.svg)](https://badge.fury.io/js/mcp-client-manager)
 
+> **⚠️ Development Status**: This package is currently under active development. APIs may change and features may be incomplete. Use in production environments at your own risk.
+
 Node.js library for loading and managing Model Context Protocol (MCP) clients.
 
 ## Installation
@@ -35,13 +37,26 @@ await loader.disconnect();
 ### Direct ClientsManager Usage
 
 ```javascript
-const { ClientsManager } = require('mcp-client-manager');
+const { ClientsManager, MCPClientLoader } = require('mcp-client-manager');
 
-const manager = new ClientsManager({
-  MCP_SERVERS_CONFIG_FILE: './config.json'
-});
+// Load config from file and pass as object
+const config = MCPClientLoader.readConfig('./config.json');
+const manager = new ClientsManager(config);
 
 await manager.connect();
+
+// Or pass config object directly
+const configObject = {
+  mcpServers: {
+    myServer: {
+      transport: 'stdio',
+      command: 'node',
+      args: ['server.js']
+    }
+  }
+};
+const manager2 = new ClientsManager(configObject);
+await manager2.connect();
 ```
 
 ## Configuration
@@ -100,7 +115,13 @@ Create a configuration file with your MCP servers:
 #### Constructor
 
 - `new ClientsManager(config)`: Create a new clients manager
-  - `config.MCP_SERVERS_CONFIG_FILE`: Path to configuration file
+  - `config`: Configuration object with `mcpServers` property
+
+### MCPClientLoader
+
+#### Static Methods
+
+- `MCPClientLoader.readConfig(path)`: Read and parse configuration from file
 
 #### Methods
 

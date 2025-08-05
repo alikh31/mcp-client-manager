@@ -1,6 +1,6 @@
 # MCP Client Manager
 
-[![CI](https://github.com/username/mcp-client-manager/workflows/CI/badge.svg)](https://github.com/username/mcp-client-manager/actions)
+[![CI](https://github.com/alikh31/mcp-client-manager/workflows/CI/badge.svg)](https://github.com/alikh31/mcp-client-manager/actions)
 [![npm version](https://badge.fury.io/js/mcp-client-manager.svg)](https://badge.fury.io/js/mcp-client-manager)
 
 Node.js library for loading and managing Model Context Protocol (MCP) clients.

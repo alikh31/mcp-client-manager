@@ -193,11 +193,12 @@ describe('ClientsManager', () => {
     })
 
     it('should handle connection errors', async () => {
+      const quietManager = new ClientsManager(testConfig, { enableLogging: false })
       const error = new Error('Connection failed')
 
       mockClient.connect.mockRejectedValueOnce(error)
 
-      await expect(manager.connect()).rejects.toThrow('Connection failed')
+      await expect(quietManager.connect()).rejects.toThrow('Connection failed')
     })
   })
 
@@ -293,10 +294,11 @@ describe('ClientsManager', () => {
     })
 
     it('should register and call error handlers', () => {
-      manager.setErrorHandler(mockHandler)
+      const quietManager = new ClientsManager(testConfig, { enableLogging: false })
+      quietManager.setErrorHandler(mockHandler)
 
       const error = new Error('Test error')
-      manager.handleClientError('testClient', error)
+      quietManager.handleClientError('testClient', error)
 
       expect(mockHandler).toHaveBeenCalledWith('testClient', error)
     })

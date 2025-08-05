@@ -71,7 +71,7 @@ describe('MCPClientLoader', () => {
       const result = await loader.loadClients(testConfigPath)
 
       expect(ClientsManager).toHaveBeenCalledWith(expect.objectContaining({
-        mcpServers: expect.any(Object)
+        mcpServers: expect.any(Object),
       }))
       expect(mockClientManager.connect).toHaveBeenCalled()
       expect(result).toBe(mockClientManager)

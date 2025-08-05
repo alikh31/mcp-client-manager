@@ -8,7 +8,8 @@
     "test:watch": "jest --watchAll",
     "test:coverage": "jest --coverage",
     "lint": "eslint src/ tests/ index.js",
-    "lint:fix": "eslint src/ tests/ index.js --fix"
+    "lint:fix": "eslint src/ tests/ index.js --fix",
+    "prepare": "husky"
   },
   "keywords": ["mcp", "client", "manager", "model-context-protocol"],
   "author": "",
@@ -20,7 +21,9 @@
   "devDependencies": {
     "jest": "^29.7.0",
     "@types/jest": "^29.5.5",
-    "eslint": "^8.57.0"
+    "eslint": "^8.57.0",
+    "husky": "^9.0.0",
+    "lint-staged": "^15.0.0"
   },
   "engines": {
     "node": ">=20.0.0"
@@ -33,5 +36,11 @@
     ],
     "coverageDirectory": "coverage",
     "coverageReporters": ["text", "lcov", "html"]
+  },
+  "lint-staged": {
+    "*.js": [
+      "eslint --fix",
+      "git add"
+    ]
   }
 }

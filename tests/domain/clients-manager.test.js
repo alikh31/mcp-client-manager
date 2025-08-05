@@ -1,6 +1,3 @@
-const fs = require('fs')
-const path = require('path')
-
 jest.mock('@modelcontextprotocol/sdk')
 jest.mock('@modelcontextprotocol/sdk/client/index.js')
 jest.mock('@modelcontextprotocol/sdk/client/stdio.js')

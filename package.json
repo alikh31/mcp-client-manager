@@ -3,6 +3,10 @@
   "version": "1.0.3",
   "description": "Node.js library for loading and managing MCP clients",
   "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/alikh31/mcp-client-manager.git"
+  },
   "scripts": {
     "test": "jest",
     "test:watch": "jest --watchAll",
